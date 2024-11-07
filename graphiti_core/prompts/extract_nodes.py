@@ -112,7 +112,7 @@ Respond with a JSON object in the following format:
     ]
 
 
-def extract_json(context: dict[str, Any]) -> list[Message]:
+def extract_json_old(context: dict[str, Any]) -> list[Message]:
     sys_prompt = """You are an AI assistant that extracts entity nodes from conversational text. 
     Your primary task is to identify and extract relevant entities from JSON files"""
 
@@ -144,9 +144,47 @@ Respond with a JSON object in the following format:
         Message(role='system', content=sys_prompt),
         Message(role='user', content=user_prompt),
     ]
+def extract_json(context: dict[str, Any]) -> list[Message]:
+    sys_prompt = """You are an AI assistant that extracts entity nodes from provided content. Your primary task is to identify and extract significant entities from JSON files relevant to improving the company's products and services."""
+
+    user_prompt = f"""
+Given the following source description, extract relevant entity nodes from the provided JSON:
+
+Source Description:
+{context["source_description"]}
+
+JSON:
+{context["episode_content"]}
+
+Guidelines:
+1. Always try to extract an entities that the JSON represents. This will often be something like a "name" or "type" field
+2. Do NOT extract any properties that contain dates
+3. Extract significant entities, concepts, or actors relevant to the company's product improvement efforts.
+4. Focus on entities such as technologies, product features, identified problems, feedback sources, releases, processes, tasks, user personas, market trends, performance metrics, goals, regulatory requirements, internal teams, customer satisfaction scores, bug reports, support tickets, development roadmaps, company policies, communication channels, financial metrics, customer journey stages, training resources, strategic partnerships, and risk factors.
+5. Provide concise but informative summaries for each extracted node.
+6. Avoid creating nodes for relationships or actions.
+7. Avoid creating nodes for temporal information like dates, times, or years (these will be added to edges later).
+8. Be as explicit as possible in your node names, using full names and avoiding abbreviations.
+
+Respond with a JSON object in the following format:
+{{
+    "extracted_nodes": [
+        {{
+            "name": "Unique identifier for the node (use the speaker's name for speaker nodes)",
+            "labels": ["Entity", "Speaker" for speaker nodes, "OptionalAdditionalLabel"],
+            "summary": "Brief summary of the node's role or significance"
+        }}
+    ]
+}}
+"""
+    return [
+        Message(role='system', content=sys_prompt),
+        Message(role='user', content=user_prompt),
+    ]
 
 
-def extract_text(context: dict[str, Any]) -> list[Message]:
+
+def extract_text_old(context: dict[str, Any]) -> list[Message]:
     sys_prompt = """You are an AI assistant that extracts entity nodes from conversational text. Your primary task is to identify and extract the speaker and other significant entities mentioned in the conversation."""
 
     user_prompt = f"""
@@ -169,6 +207,39 @@ Respond with a JSON object in the following format:
     "extracted_nodes": [
         {{
             "name": "Unique identifier for the node (use the speaker's name for speaker nodes)",
+            "labels": ["Entity", "OptionalAdditionalLabel"],
+            "summary": "Brief summary of the node's role or significance"
+        }}
+    ]
+}}
+"""
+    return [
+        Message(role='system', content=sys_prompt),
+        Message(role='user', content=user_prompt),
+    ]
+
+def extract_text(context: dict[str, Any]) -> list[Message]:
+    sys_prompt = """You are an AI assistant that extracts entity nodes from provided content. Your primary task is to identify and extract significant entities relevant to improving the company's products and services."""
+
+    user_prompt = f"""
+Given the following text, extract entity nodes that are explicitly or implicitly mentioned:
+
+Text:
+{context["episode_content"]}
+
+Guidelines:
+1. Extract significant entities, concepts, or actors relevant to the company's product improvement efforts.
+2. Focus on entities such as technologies, product features, identified problems, feedback sources, releases, processes, tasks, user personas, market trends, performance metrics, goals, regulatory requirements, internal teams, customer satisfaction scores, bug reports, support tickets, development roadmaps, company policies, communication channels, financial metrics, customer journey stages, training resources, strategic partnerships, and risk factors.
+3. Provide concise but informative summaries for each extracted node.
+4. Avoid creating nodes for relationships or actions.
+5. Avoid creating nodes for temporal information like dates, times, or years (these will be added to edges later).
+6. Be as explicit as possible in your node names, using full names and avoiding abbreviations.
+
+Respond with a JSON object in the following format:
+{{
+    "extracted_nodes": [
+        {{
+            "name": "Unique identifier for the node",
             "labels": ["Entity", "OptionalAdditionalLabel"],
             "summary": "Brief summary of the node's role or significance"
         }}

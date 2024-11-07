@@ -19,7 +19,7 @@ import logging
 import typing
 
 import openai
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AsyncAzureOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
 from ..prompts.models import Message
@@ -71,7 +71,10 @@ class OpenAIClient(LLMClient):
         super().__init__(config, cache)
 
         if client is None:
-            self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
+            if config.use_azure:
+                self.client = AsyncAzureOpenAI(api_key=config.api_key, azure_endpoint=config.base_url,  api_version="2024-07-01-preview",)
+            else:
+                self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
         else:
             self.client = client
 

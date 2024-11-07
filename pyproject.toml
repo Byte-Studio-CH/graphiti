@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "graphiti-core"
+name = "graphiti-core-byte-studio"
 version = "0.4.0"
 description = "A temporal graph building library"
 authors = [

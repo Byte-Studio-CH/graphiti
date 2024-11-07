@@ -86,7 +86,7 @@ def v1(context: dict[str, Any]) -> list[Message]:
     ]
 
 
-def v2(context: dict[str, Any]) -> list[Message]:
+def v2_old(context: dict[str, Any]) -> list[Message]:
     return [
         Message(
             role='system',
@@ -136,5 +136,66 @@ def v2(context: dict[str, Any]) -> list[Message]:
         ),
     ]
 
+def v2(context: dict[str, Any]) -> list[Message]:
+    return [
+        Message(
+            role='system',
+            content="You are an AI assistant that extracts relationships (edges) between entities in a company's product improvement context. Your primary task is to identify and extract meaningful relationships between the provided nodes, based on the given text.",
+        ),
+        Message(
+            role='user',
+            content=f"""
+        Given the following context, extract edges (relationships) that need to be added to the knowledge graph:
+        Nodes:
+        {json.dumps(context['nodes'], indent=2)}
+
+        
+
+        Episodes:
+        {json.dumps([ep['content'] for ep in context['previous_episodes']], indent=2)}
+        {context['episode_content']} <-- New Episode
+        
+
+        Extract entity edges based on the content of the current episode, the given nodes, and context from previous episodes.
+
+        **Guidelines:**
+        1. **Create edges only between the provided nodes.**
+        2. **Each edge should represent a clear, relevant relationship between two DISTINCT nodes.**
+        3. **Focus on relationships such as:**
+            - **Technologies** `USED_IN` **Product Features**
+            - **Identified Problems** `AFFECT` **Product Features**
+            - **Feedback Sources** `PROVIDE_FEEDBACK_ON` **Product Features**
+            - **Releases** `INCLUDE` **Product Features**
+            - **Processes** `INVOLVE` **Tasks**
+            - **Tasks** `ASSIGNED_TO` **Internal Teams or Roles**
+            - **User Personas** `USE` **Product Features**
+            - **Market Trends** `INFLUENCE` **Goals and Objectives**
+            - **Performance Metrics** `MEASURE` **Product Features** or **Customer Satisfaction**
+            - **Bug Reports** `REPORT` **Identified Problems**
+            - **Strategic Partnerships** `COLLABORATE_WITH` **Internal Teams**
+            - **Communication Channels** `FACILITATE` **Processes**
+        4. **The `relation_type` should be a concise, ALL_CAPS description of the relationship (e.g., USED_IN, AFFECTS, PROVIDES_FEEDBACK_ON).**
+        5. **Provide a detailed `fact` describing the relationship, including any specific relevant information.**
+        6. **Consider temporal aspects of relationships when relevant and include them in `valid_at` and `invalid_at`.**
+        7. **Avoid using the same node as the source and target of a relationship.**
+
+        Respond with a JSON object in the following format:
+        {{
+            "edges": [
+                {{
+                    "relation_type": "RELATION_TYPE_IN_CAPS",
+                    "source_node_uuid": "uuid of the source entity node",
+                    "target_node_uuid": "uuid of the target entity node",
+                    "fact": "brief description of the relationship",
+                    "valid_at": "YYYY-MM-DDTHH:MM:SSZ or null if not explicitly mentioned",
+                    "invalid_at": "YYYY-MM-DDTHH:MM:SSZ or null if ongoing or not explicitly mentioned"
+                }}
+            ]
+        }}
+
+        If no edges need to be added, return an empty list for "edges".
+        """,
+        ),
+    ]
 
 versions: Versions = {'v1': v1, 'v2': v2}

@@ -16,18 +16,20 @@ limitations under the License.
 
 from typing import Iterable, List
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AsyncAzureOpenAI
 from openai.types import EmbeddingModel
 
 from .client import EmbedderClient, EmbedderConfig
 
-DEFAULT_EMBEDDING_MODEL = 'text-embedding-3-small'
+# DEFAULT_EMBEDDING_MODEL = 'text-embedding-3-small'
+DEFAULT_EMBEDDING_MODEL = 'text-embedding-3-large'
 
 
 class OpenAIEmbedderConfig(EmbedderConfig):
     embedding_model: EmbeddingModel | str = DEFAULT_EMBEDDING_MODEL
     api_key: str | None = None
     base_url: str | None = None
+    use_azure: bool | None = False
 
 
 class OpenAIEmbedder(EmbedderClient):
@@ -39,7 +41,10 @@ class OpenAIEmbedder(EmbedderClient):
         if config is None:
             config = OpenAIEmbedderConfig()
         self.config = config
-        self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
+        if config.use_azure:
+            self.client = AsyncAzureOpenAI(api_key=config.api_key, azure_endpoint=config.base_url,  api_version="2024-07-01-preview",)
+        else:
+            self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
 
     async def create(
         self, input_data: str | List[str] | Iterable[int] | Iterable[Iterable[int]]

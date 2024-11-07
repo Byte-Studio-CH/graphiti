@@ -19,7 +19,7 @@ import logging
 from typing import Any
 
 import openai
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AsyncAzureOpenAI
 from pydantic import BaseModel
 
 from ..llm_client import LLMConfig, RateLimitError
@@ -50,7 +50,10 @@ class OpenAIRerankerClient(CrossEncoderClient):
             config = LLMConfig()
 
         self.config = config
-        self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
+        if config.use_azure:
+            self.client = AsyncAzureOpenAI(api_key=config.api_key, azure_endpoint=config.base_url,  api_version="2024-07-01-preview",)
+        else:
+            self.client = AsyncOpenAI(api_key=config.api_key, base_url=config.base_url)
 
     async def rank(self, query: str, passages: list[str]) -> list[tuple[str, float]]:
         openai_messages_list: Any = [

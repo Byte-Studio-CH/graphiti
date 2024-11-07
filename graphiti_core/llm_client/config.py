@@ -34,6 +34,7 @@ class LLMConfig:
         base_url: str | None = None,
         temperature: float = DEFAULT_TEMPERATURE,
         max_tokens: int = DEFAULT_MAX_TOKENS,
+        use_azure: bool | None = None,
     ):
         """
         Initialize the LLMConfig with the provided parameters.
@@ -55,3 +56,4 @@ class LLMConfig:
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
+        self.use_azure = use_azure

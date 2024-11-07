@@ -687,6 +687,16 @@ class Graphiti:
             bfs_origin_node_uuids,
         )
 
+    async def get_nodes_by_uuids(
+            self,
+            uuids: list[str] | None = None,
+            group_ids: list[str] | None = None,
+            limit: int = DEFAULT_SEARCH_LIMIT,
+    ) -> list[EntityNode]:
+
+
+        return await EntityNode.get_by_uuids(self.driver, uuids)
+
     async def get_nodes_by_query(
         self,
         query: str,
